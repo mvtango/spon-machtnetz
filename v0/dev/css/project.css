@@ -1,0 +1,189 @@
+@charset "UTF-8";
+
+.invisible {
+    display: none;
+}
+
+.preloader {
+    width: 100%;
+    text-align: center;
+}
+
+.tabContent
+{
+    height:400px;
+}
+
+.tabsBar .tab a {
+    color: black;
+}
+
+.tabsBar .tab a:hover {
+    text-decoration: none;
+}
+
+.qtip.qtip-default.qtip-ranking {
+    border: 4px solid #111;
+    padding-top: 0.5em;
+}
+
+/* --- Ranking --------------------------------------------- ------------------------------ */
+
+.ranking #timeseries {
+    float:left;
+    width: 100%;
+    height: 240px;
+    /*border: 1px solid #ffcc33;*/
+}
+
+
+.ranking #timeseries svg .axis {
+  shape-rendering: crispEdges;
+}
+
+
+.ranking-inner {
+    position: relative;
+    
+}
+
+.ranking-inner .infobox {
+    position: absolute;
+    top: 2em;
+    right: 0em;
+    width: 40em;
+    padding: 1em 0.5em 1em 0.5em;
+}
+
+
+/* Eigentliche Treppe */
+.ranking #stairs {
+    width:869px;
+    height:500px;
+    overflow:hidden;
+    background-image: url( '../img/bg.png' );
+    background-repeat:no-repeat;
+    background-position:right bottom;
+    border-bottom: 1px solid grey;
+    margin-bottom: 40px;
+}
+
+
+/* Stufe mit Bar, Image & Label */
+#stairs .stufe {
+    position: relative;
+    float: left;
+    margin-left: 22px;
+    width: 60px;
+}
+
+#stairs .stufe .bar {
+    background: #00acee;
+    border: 1px solid white;
+    width: 100%;
+}
+
+#stairs .stufe.selected .bar {
+    background-color: #0789b8;
+}
+
+#stairs .image {
+    position: relative;
+    /*height: 68px;
+    width: 60px;*/
+    cursor: ponter;
+}
+
+#stairs .label {
+    color:white;
+    font-weight: bold;
+    position: relative;
+    bottom: 95px;
+    font-size: 130%;
+    text-align: center;
+    width:60px;
+}
+
+#stairs .vogel {
+    background-image: url('../img/vogel.png');
+    background-repeat:no-repeat;
+    background-position:right bottom;
+    position: relative;
+    bottom: 140px;
+    left:18px;
+    width: 24px;
+    height: 22px;
+}
+
+#stairs .party_cdu .vogel { background-image: url('../img/tw_cdu.png'); }
+#stairs .party_csu .vogel { background-image: url('../img/tw_cdu.png'); }
+#stairs .party_spd .vogel { background-image: url('../img/tw_spd.png'); }
+#stairs .party_fdp .vogel { background-image: url('../img/tw_fdp.png'); }
+#stairs .party_linke .vogel { background-image: url('../img/tw_linke.png'); }
+#stairs .party_gruene .vogel { background-image: url('../img/tw_gruene.png'); }
+#stairs .party_piraten .vogel { background-image: url('../img/tw_piraten.png'); }
+#stairs .party_afd .vogel { background-image: url('../img/tw_afd.png'); }
+
+
+@media (min-width: 855px) {
+    
+    .ranking #stairs {
+        width:855px;
+    }
+
+    body {
+        width:855px;   
+    }
+}
+
+
+@media (max-width: 850px) {
+
+    .ranking #stairs {
+        height: 300px;
+    }
+
+    .ranking #timeseries {
+        /*display: none;*/
+    }
+
+    #stairs .stufe {
+       margin-left: 5px;
+       width: 43px;
+    }
+
+    #stairs .label {
+        width: 43px;
+        bottom: 85px;
+    }
+
+    #stairs .vogel {
+        display: none;
+    }
+}
+
+@media (max-width: 470px) {
+
+    .ranking #stairs {
+        height: 300px;
+    }
+
+    .ranking .ranking-inner .infobox {
+        display: none;
+    }
+
+    .ranking #timeseries {
+        display: none;
+    }
+
+    #stairs .stufe {
+       margin-left: 2px;
+       width: 30px;
+    }
+
+    #stairs .label {
+        width: 30px;
+        bottom: 70px;
+    }
+}
+
