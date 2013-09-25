@@ -29,8 +29,28 @@
 
 /* Debug Console  */
 
-div#debug {
-    background-color: #F0E000;
-    height: 150px;
+
+div#details {
+    float: left;
+    background-color: #F0F0F0;
+    border-left: 1px solid #990000;
+    margin-left: 30px;
+    height: 540px;
+    width: 200px;
     overflow: auto; 
+}
+
+div#debug {
+    float: left;
+    background-color: #F0E000;
+    height: 540px;
+    width: 200px;
+    overflow: auto;
+    border-left: 2px solid #ffffff; 
+}
+
+div#graph {
+	width: 540px;
+	height:540px;
+	float: left;
 }

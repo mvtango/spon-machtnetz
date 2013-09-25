@@ -8,6 +8,9 @@ require.config({
 		},
 		mustache :  {
 			exports: "Mustache"
+		},
+		jit :  {
+			exports: "$jit"
 		}
 	},
 	paths: {
@@ -29,13 +32,15 @@ require.config({
         // d3light: '../../../../../../_common/js/d3/d3.light-3.1.7.min',
         tabletop : 'tabletop',
         mustache : 'mustache',
-        jquerymustache : 'jquery.mustache.amd'
+        jquerymustache : 'jquery.mustache.amd',
+        jit : 'jit'
 	}
 });
 
-require(["jquery", "underscore", "hashchange", "interface","tabletop","config","jquerymustache"],
-        function ($, _, jqhash, mSponInterface, tabletop,config) {
+require(["jquery", "underscore", "hashchange", "interface","tabletop","jit","config","jquerymustache"],
+        function ($, _, jqhash, mSponInterface, tabletop,jit,config) {
 
+   $(".preloader, #oldie").hide();
    var $tabs = $('.tabsBar .tab');
 
 
@@ -84,10 +89,174 @@ require(["jquery", "underscore", "hashchange", "interface","tabletop","config","
 		return passed;
 	}	
 
-	nodes={};
-	edges=[];	
+	var nodes={};
+	var graph;
+
+    function make_graph(nodes) {
+		if (typeof graph == "undefined") {
+		 graph = new jit.ForceDirected({  
+			injectInto: 'graph',  
+			//Enable zooming and panning  
+			//by scrolling and DnD  
+			Navigation: {  
+				enable: true,  
+				//Enable panning events only if we're dragging the empty  
+				//canvas (and not a node).  
+				panning: 'avoid nodes',  
+				zooming: 10 //zoom speed. higher is more sensible  
+			},  
+			// Change node and edge styles such as  
+			// color and width.  
+			// These properties are also set per node  
+			// with dollar prefixed data-properties in the  
+			// JSON structure.  
+			Node: {  
+				overridable: true  
+			},  
+			Edge: {  
+				overridable: true,  
+				color: '#23A4FF',  
+				lineWidth: 0.4  
+			},  
+			//Native canvas text styling  
+			Label: _({  
+				type: 'Native', //Native or HTML  
+				size: 10,  
+				style: 'bold',
+				color: "#000000",  
+			}).extend(config.label),  
+			//Add Tips  
+			Tips: {  
+				enable: true,  
+				onShow: function(tip, node) {  
+				//count connections  
+				var count = 0;  
+				node.eachAdjacency(function() { count++; });  
+				//display node info in tooltip  
+				$(tip).html("<div class=\"tip-title\">" + node.name + "</div>"  
+				+ "<div class=\"tip-text\"><b>connections:</b> " + count + "</div>");  
+				}  
+			},  
+	  // Add node events  
+		Events: {  
+			enable: true,  
+			type: 'Native',  
+			//Change cursor style when hovering a node  
+			onMouseEnter: function() {  
+				graph.canvas.getElement().style.cursor = 'move';  
+			},  
+			onMouseLeave: function() {  
+				graph.canvas.getElement().style.cursor = '';  
+			},  
+			//Update node positions when dragged  
+			onDragMove: function(node, eventInfo, e) {  
+				var pos = eventInfo.getPos();  
+				node.pos.setc(pos.x, pos.y);  
+				graph.plot();  
+			},  
+			//Implement the same handler for touchscreens  
+			onTouchMove: function(node, eventInfo, e) {  
+				jit.util.event.stop(e); //stop default touchmove event  
+				this.onDragMove(node, eventInfo, e);  
+			},  
+			//Add also a click handler to nodes  
+			onClick: function(node) {  
+				if(!node) return;   
+				$('#details').mustache(node.data.type+"-info",node);  
+			}  
+		},  
+		//Number of iterations for the FD algorithm  
+		iterations: 200,  
+		//Edge length  
+		levelDistance: 130,  
+		// Add text to the labels. This method is only triggered  
+		// on label creation and only for DOM labels (not native canvas ones).  
+		onCreateLabel: function(domElement, node){  
+			domElement.innerHTML = node.name;
+			$(domElement).css( _({fontSize:"0.8em", color: "#888"}).extend(config.label));  
+		},  
+		// Change node styles when DOM labels are placed  
+		// or moved.  
+		onPlaceLabel: function(domElement, node){  
+			var style = domElement.style;  
+			var left = parseInt(style.left);  
+			var top = parseInt(style.top);  
+			var w = domElement.offsetWidth;  
+			style.left = (left - w / 2) + 'px';  
+			style.top = (top + 10) + 'px';  
+			style.display = '';  
+		}  
+	   });  
+	  }
+ 	   // load JSON data.  
+	  graph.loadJSON(nodes);  
+	  // compute positions incrementally and animate.  
+	  graph.computeIncremental({  
+	    iter: 40,  
+	    property: 'end',  
+	    onStep: function(perc){  
+		  log(perc + '% loaded...');  
+	    },  
+	    onComplete: function(){  
+		  log('done');  
+	      graph.animate({  
+		   modes: ['linear'],  
+		   transition: jit.Trans.Elastic.easeOut,  
+		   duration: 2500  
+		 });  
+	    }  
+	  });  
+	  return graph;
+	}
+
+    function filter_nodes(s,max) {
+		var r=[];
+		var already={};
+		var rr=[];
+		i=max || config.showlevels;
+ 		r=_(nodes).values().filter(function(n) { return n.name.indexOf(s)>-1 });
+		_(r).each(function(k) { already[k.id]=true ; });
+		while(i--) {
+			_(r).each(function(node) {
+				_(node.adjacencies).each(function(edge) {
+					if (!(edge.nodeTo in already)) {
+						rr.push(nodes[edge.nodeTo]);
+						already[edge.nodeTo]=true;
+					}
+					if (!(edge.nodeFrom in already)) {
+						rr.push(nodes[edge.nodeFrom]);
+						already[edge.nodeFrom]=true;
+					}
+				});
+			});
+			_(rr).each(function(n) { r.push(n); });
+			rr=[]; 
+		}
+		_(r).each(function(node) {
+			_(node.adjacencies).each(function(edge) {
+				if (!(edge.nodeTo in already)) {
+					var nn=nodes[edge.nodeTo];
+					rr.push({ name : nn.name, id: nn.id, data: nn.data});
+				}
+				if (!(edge.nodeFrom in already)) {
+					var nn=nodes[edge.nodeFrom];
+					rr.push({ name : nn.name, id: nn.id, data: nn.data});
+				}
+			});
+		});
+		_(rr).each(function(n) { r.push(n); });
+		return r;	
+	}
+	
+	function focus_graph(s,i) {
+		n=filter_nodes(s,i);
+		return(make_graph(n));
+	}
+	
+	window.focus_graph=focus_graph;
 
 	$(document).ready(function(){
+		log("Warte auf Spreadsheet ",config.spreadsheet);
 		spreadsheetTimeout=setTimeout(function() {
 			log('Spreadheet nicht veröffentlicht? Nicht geladen nach 30 Sekunden.<br/>', '<a href="_">_</a>'.replace("_",config.spreadsheet));			
 		},30*1000);
@@ -97,9 +266,17 @@ require(["jquery", "underscore", "hashchange", "interface","tabletop","config","
 							 log('<a href="'+config.spreadsheet+'">Spreadsheet</a> geladen.');
 							 _(data.templates.all()).each(function(t) {
 								$.Mustache.add(t.name+"-"+t.type,t.code); 
-							 });
+				 			 });
 							 _(data.config.all()).each(function(v) {
-								config[v.name]=v.value; 
+								if (v.value.match(/ *\{/)) {
+									try {
+										config[v.name]=(new Function("return "+v.value))();
+									} catch(e) {
+										log('FEHLER','"'+v.value+'" ',e);
+									}  
+							    } else {
+									config[v.name]=v.value;
+								} 
 							 });
 							 _(config.nodes.split(/ *, */)).each(function(n) {
 								 if (n in data) {
@@ -111,7 +288,8 @@ require(["jquery", "underscore", "hashchange", "interface","tabletop","config","
 											}	
 											node.type=n;
 											node.line=z+2;
-											nodes[node.id]=node; 
+											gnode={ 'name' : node.name, 'id' : node.id, 'adjacencies' : [], data : _(node).extend(config[n] || {})};
+											nodes[node.id]=gnode;
 										 });
 									 log("Tabelle <i>",n,"</i>: ",data[n].all().length," Einträge für Netzknoten.");
 								  }
@@ -126,7 +304,8 @@ require(["jquery", "underscore", "hashchange", "interface","tabletop","config","
 											if (check_nodes(edge,['from','to'],z,n)) {
 												edge.line=z+2;
 												edge.type=n;
-												edges.push(edge);
+												nodes[edge.from].adjacencies.push({ 'nodeFrom' : edge.from, 'nodeTo' : edge.to, 'data' : _(edge).extend(config[n] || {}) });
+												nodes[edge.to].adjacencies.push({ 'nodeFrom' : edge.from, 'nodeTo' : edge.to, 'data' : _(edge).extend(config[n] || {}) });
 											}
 										});
 									log("Tabelle <i>",n,"</i>: ",data[n].all().length," Einträge für Netzverbindungen.");
@@ -135,7 +314,7 @@ require(["jquery", "underscore", "hashchange", "interface","tabletop","config","
 									log("FEHLER","Tabelle <i>",n,"</i> nicht vorhanden. Die Tabelle ist in der Tabelle <i>config</i> unter <i>edges</i> aufgelistet und sollte Netzverbindungen enthalten.");
 								}
 							});
-							 							
+							focus_graph("Volkswagen",2);
 						}
 		});
 		mSponInterface.init();
