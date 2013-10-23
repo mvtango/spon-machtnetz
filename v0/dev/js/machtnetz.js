@@ -9,8 +9,12 @@ define(['jquery','underscore','config','machtnetzloader','machtnetzrenderer'],
 		var r=[];
 		var already={};
 		var rr=[];
-		i=max /* || config.settings.showlevels */;
-		config.log("i="+i);
+		if (isNaN(parseInt(max))) {
+			i=config.settings.showlevels || 2;
+		} else {
+			i=parseInt(max)
+		};
+		config.log("s="+s+" max="+i);
  		r=_(nodes).values().filter(function(n) { return n.name.indexOf(s)>-1 });
 		_(r).each(function(k) { already[k.id]=true ; });
 		while(i--) {

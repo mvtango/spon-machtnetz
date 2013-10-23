@@ -33,6 +33,7 @@ require.config({
         tabletop : 'tabletop',
         mustache : 'mustache',
         jquerymustache : 'jquery.mustache.amd',
+        jqueryparseparams : 'jquery.parseParams',
         jit : 'jit',
         machtnetz : 'machtnetz',
         machtnetzloader :   'machtnetz.loader',
@@ -40,19 +41,30 @@ require.config({
 	}
 });
 
-require(["jquery", "underscore", "hashchange", "interface","machtnetz","jit","config","jquerymustache"],
+require(["jquery", "underscore", "hashchange", "interface","machtnetz","jit","config","jquerymustache","jqueryparseparams"],
         function ($, _, jqhash, mSponInterface, machtnetz,jit,config) {
 
-   $(".preloader, #oldie").hide();
+   $("#oldie").hide();
+   config.loading("Grafik wird vorbereitet");
+   
    var $tabs = $('.tabsBar .tab');
 
 
-   function route(path) {
-        /*$tabs.removeClass('tabActive');
-          $tabs.filter('[data-name="' + path[0] + '"]').addClass('tabActive'); */
-        if (path[0]!='') {
-			var children=parseInt(path[1]);
-			machtnetz.focus(path[0],children);
+   function route(params) {
+	    state=_($.parseParams(config.settings.start)).extend($.parseParams(params));
+		config.log("HASHCHANGE "+JSON.stringify(state));
+        if (state.debug) {
+			$(".debugwrapper").css({ visibility: "visible" });
+			if (state.debug+"">"1") {
+				$(".debugwrapper #debug").addClass("always");
+			}
+		} else {
+			$(".debugwrapper").css({ visibility: "hidden" });
+			$(".debugwrapper #debug").removeClass("always");
+		}
+        if (state.name) {
+			var children=parseInt(state.children);
+			machtnetz.focus(state.name,children);
         } 
     }
 
@@ -62,19 +74,30 @@ require(["jquery", "underscore", "hashchange", "interface","machtnetz","jit","co
 
 	$(document).ready(function(){
 		mSponInterface.init();
+		$("#graphframe").width($(window).width());
 		$(window).hashchange(function(e) {
-                route(location.hash.substring(1).split('/'));
+                route(location.hash);
                 e.preventDefault();
 		});
-
-		machtnetz.load(config.spreadsheet,function(data) {
-			config.log("hash="+data.settings.start);
+		if (document.location.search) {
+			source=$.parseParams(document.location.search).source;
+		} else {
+			source=config.spreadsheet;
+		}
+		machtnetz.load(source,function(data) {
+			if ($(window).width()>data.settings.graphwidth) {
+				$("#graph").fadeIn({ complete: function() { $("#graph").removeClass("invisible"); } });
+				config.log("Grafik wird nicht angezeigt. Fensterbreite unter "+data.settings.graphwidth+"px - einstellbar in settings.graphwidth");
+			}; 
+			$("#detail").css({ display: "inline-block"}).fadeIn();
+			config.loading("Grafik wird vorbereitet ...");
+			$("#topics .tab:first-child").html(data.settings.title);
+			$(".spCredit").html(data.settings.source);
 			if (!location.hash) {
 				location.hash="#"+data.settings.start;
 			} else {
 				$(window).hashchange();
 			}
-			$('.preloader').hide();
  		});
 		
         

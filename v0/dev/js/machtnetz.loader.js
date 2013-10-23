@@ -4,15 +4,18 @@
  * 		-- Alles in value, was nach JS aussieht,
  *         wird kompiliert
  *      -- Worksheets, die in "nodes" aufgelistet sind, müssen existieren und Knoten 
- *         enthalten. Knoten haben mindestens die Attribut id und name
+ *         enthalten. Knoten haben mindestens die Attribut id und name. Empfohlen werden 
+ * 		   ebenfalls "source" (Quelle) und "update" (Datum der letzten Änderung). 
  *      -- Worksheets, die in "edges" aufgelistet sind, müssen existieren und Verbindungen 
- *         enthalten. Verbindungen haben mindestens die Attribute nodeFrom und NodeTo
+ *         enthalten. Verbindungen haben mindestens die Attribute nodeFrom und NodeTo.
+ * 		   Empfohlen werden ebenfalls "source" (Quelle) und "update" 
+ * 		   (Datum der letzten Änderung).
  * 
  * 
  *   - "templates" - enthält die Spalten "name","type","code"
  *      Die Templates in code sind Mustache-Template, sie werden beim Laden kompiliert und
  * 		jquery.Mustache unter dem Namen "{{ name }}-{{ type }}" hinzugefügt.
- * 		Sie können zum Beispiel über 
+ * 		
  * 
  *
  * 
@@ -69,7 +72,8 @@ define(['jquery','underscore','tabletop','config','jquerymustache'],
 		log("Warte auf Spreadsheet ",spreadsheet);
 		var spreadsheetTimeout=setTimeout(function() {
 				log('Spreadheet nicht veröffentlicht? Nicht geladen nach', config.timeout, 'Sekunden.<br/>', '<a href="_">_</a>'.replace("_",spreadsheet));			
-				throw "machtnetz loader timeout";
+				/* throw "machtnetz loader timeout"; */
+				config.fatal("Die Daten konnten nicht geladen werden.");
 		},config.timeout*1000);
 		nodes={} ;
 		settings={} ; 
@@ -84,7 +88,7 @@ define(['jquery','underscore','tabletop','config','jquerymustache'],
 								   /* Variablen aus Worksheet 'settings' */
 								   _(data.settings.all()).each(function(v,z) {
 									 /* was nach Javascript aussieht, wird kompiliert */  
-									 if (v.value.match(/ *(\{|\[|function|\"|\')/)) {
+									 if (v.value.match(/^ *(\{|\[|function|\"|\'|[0-9]|-)/)) {
 										try {
 											settings[v.name]=(new Function("return "+v.value))();
 										} catch(e) {

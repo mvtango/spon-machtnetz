@@ -9,7 +9,6 @@ define(['jquery','underscore','jit','config'],
     var graph;
 
     function get_graph(nodes) {
-		config.log("settings: ",config.settings.mandat);
 		if (typeof graph == "undefined") {
 		 graph = new jit.ForceDirected({  
 			injectInto: 'graph',  
@@ -110,6 +109,10 @@ define(['jquery','underscore','jit','config'],
 
 
     function load_nodes(nodes) { 	   // load JSON data.  
+	  if ($("#graph").css("display") == "none") {
+		  config.loading(false);
+		  return;
+	  }
 	  var graph=get_graph();
 	  graph.loadJSON(nodes);  
 	  // compute positions incrementally and animate.  
@@ -117,10 +120,10 @@ define(['jquery','underscore','jit','config'],
 	    iter: 40,  
 	    property: 'end',  
 	    onStep: function(perc){  
-		  config.log(perc + '% loaded...');  
+		  config.loading('Berechnen '+".....".substr(0,Math.floor(perc/20)));  
 	    },  
 	    onComplete: function(){  
-		  config.log('done');  
+		  config.loading(false);
 	      graph.animate({  
 		   modes: ['linear'],  
 		   transition: jit.Trans.Elastic.easeOut,  

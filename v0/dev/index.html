@@ -1,5 +1,19 @@
 <!DOCTYPE html>
 <html lang="de">
+<!--
+Datenquelle wird in config.spreadsheet definiert.
+Aufruf mit ?source=<google spreadsheet key> führt zur Verwendung einer anderen Datenquelle.
+
+Zustandsvariablen, nach dem "#" anzugeben (Beispiel: '#debug=2&name=SAP')
+
+ * name= Name oder ID des Knotens
+ * children= Anzahl der "Generationen", die dargestellt werden, Standard 2
+ * debug=1 - Debug-Protokoll wird eingeblendet, wenn der Mauszeiger über dem grauen "<"
+   rechts oben in der Ecke schwebt
+   debug=2 - Debug-Protokoll bleibt ständig eingeblendet
+ 
+
+-->
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
@@ -22,27 +36,26 @@
 
 </head>
 <body>
-<div class="preloader"><img src="../../../../../_common/img/spon/ui/loading.gif" alt=""></div>
 
 <div id="oldie">
     Sie verwenden Internet Explorer 7. Bitte benutzen Sie einen neueren Browser, um diese Grafik zu sehen.
 </div>
   <div class="tabsBar">
       <div id="topics">
-        <div class="tab initial" href="#Allianz">Das Machtnetz der Allianz</div>
+        <div class="tab initial">...</div>
       </div>
   </div>
 <div id="graphframe"> 
-  <div id="graph">
+  <div class="preloader"><h2></h2><img src="../../../../../_common/img/spon/ui/loading.gif" alt=""></div>
+  <div id="graph" class="invisible">
   </div>
-  <div id="detail">
+  <div id="detail" class="invisible">
+	  <h3>Detail</h3>
   </div>
-  <br clear="all" />
-
+</div>
+<br clear="all" />
   <div class="spCredit">Quelle: <a href='http://spiegel.de' target='_blank' id='layer-attribution'>Spiegel Online</a></div>
   </div>
-
-</div>
 
 <div class="debugwrapper"><span style="float: right">&lt;</span>
   <div id="debug">
