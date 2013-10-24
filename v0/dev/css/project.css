@@ -53,13 +53,39 @@ div#graphframe {
 }
 
 div#detail {
-    width: 356px;
+    width: 346px;
     min-width: 300px;
     overflow: auto; 
 	height: 550px;
 	background-color: #ffffff;
+	text-align: left;
+	padding: 5px;
+}
+
+div#detail .header {
+	padding-left:10px;
+	padding-right: 10px;
+	text-align: left;
+	height: 40px;
+	margin-bottom: 5px;
+}
+
+div#detail .body {
+
+	font-size:120%;
+	text-align: center;
 
 }
+
+div#detail .body div {
+
+	display: inline-block;
+	width: 80%;
+	text-align: left;
+	
+
+}
+
 
 
 div#graph {
@@ -68,6 +94,15 @@ div#graph {
 	float: left;
 	background-color: #d9e3f3;
 }
+
+
+div.tooltip {
+	padding: 2px;
+	border: 1px solid #808080;
+	max-width: 250px;
+	background-color: #F0F0F0;
+}
+
 
 
 div.debugwrapper {

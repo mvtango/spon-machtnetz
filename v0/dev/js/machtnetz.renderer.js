@@ -7,6 +7,8 @@ define(['jquery','underscore','jit','config'],
     function($,_,jit,config) {
 
     var graph;
+    var nodes;
+    var node_lookup={};
 
     function get_graph(nodes) {
 		if (typeof graph == "undefined") {
@@ -45,12 +47,10 @@ define(['jquery','underscore','jit','config'],
 			Tips: {  
 				enable: true,  
 				onShow: function(tip, node) {  
-				//count connections  
-				var count = 0;  
-				node.eachAdjacency(function() { count++; });  
-				//display node info in tooltip  
-				$(tip).html("<div class=\"tip-title\">" + node.name + "</div>"  
-				+ "<div class=\"tip-text\"><b>connections:</b> " + count + "</div>");  
+				//display node info in tooltip 
+				n=node_lookup[node.id];
+				console.log(n); 
+				$(tip).mustache(n.data.type+"-tooltip", n,{ method: 'html' });  
 				}  
 			},  
 		// Add node events  
@@ -77,8 +77,8 @@ define(['jquery','underscore','jit','config'],
 			},  
 			//Add also a click handler to nodes  
 			onClick: function(node) {  
-				if(!node) return;   
-				$('#details').mustache(node.data.type+"-info",node);  
+				if(!node) return;
+				focus(node.id,2);   
 			}  
 		},  
 		//Number of iterations for the FD algorithm  
@@ -108,7 +108,61 @@ define(['jquery','underscore','jit','config'],
 	}
 
 
+	
+    function filter_nodes(s,max,nodes) {
+		var r=[];
+		var already={};
+		var rr=[];
+		if (isNaN(parseInt(max))) {
+			i=config.settings.showlevels || 2;
+		} else {
+			i=parseInt(max)
+		};
+		config.log("s="+s+" max="+i);
+ 		r=_(nodes).values().filter(function(n) { return ((n.name.indexOf(s)>-1) || (n.id==s)) });
+		_(r).each(function(k) { already[k.id]=true ; });
+		while(i--) {
+			_(r).each(function(node) {
+				_(node.adjacencies).each(function(edge) {
+					if (!(edge.nodeTo in already)) {
+						rr.push(nodes[edge.nodeTo]);
+						already[edge.nodeTo]=true;
+					}
+					if (!(edge.nodeFrom in already)) {
+						rr.push(nodes[edge.nodeFrom]);
+						already[edge.nodeFrom]=true;
+					}
+				});
+			});
+			_(rr).each(function(n) { r.push(n); });
+			rr=[]; 
+		}
+		/* 
+		_(r).each(function(node) {
+			_(node.adjacencies).each(function(edge) {
+				if (!(edge.nodeTo in already)) {
+					var nn=nodes[edge.nodeTo];
+					rr.push({ name : nn.name, id: nn.id, data: nn.data});
+				}
+				if (!(edge.nodeFrom in already)) {
+					var nn=nodes[edge.nodeFrom];
+					rr.push({ name : nn.name, id: nn.id, data: nn.data});
+				}
+			});
+		});
+		_(rr).each(function(n) { r.push(n); });
+		*/
+		return r;	
+	}
+
+
+
+
+
     function load_nodes(nodes) { 	   // load JSON data.  
+	  _(nodes).each(function(n) {
+		  node_lookup[n.id]=n;
+	  });
 	  if ($("#graph").css("display") == "none") {
 		  config.loading(false);
 		  return;
@@ -135,11 +189,30 @@ define(['jquery','underscore','jit','config'],
 
 
 
+	function display_node(n) {
+		var o=$.extend({},n);
+		_(o.adjacencies).each(function(a) {
+			var ln = o.id == a.nodeTo ? a.nodeFrom : a.nodeTo
+			a.node=node_lookup[ln];
+		})
+		$('#detail').mustache(n.data.type+"-info",n,{ method: 'html'});  
+	}
+
+	
+	function focus(s,i,nl) {
+		if (nl) {
+			nodes=nl;
+		}
+		n=filter_nodes(s,i,nodes);
+		load_nodes(n);
+		display_node(n[0]);
+	}
+
 
 
 	return { 
-	    'render' : load_nodes,
-	    'graph'  : graph 
+		'focus' 	   : focus,
+	    'graph'   	   : graph 
 	};
 
 });

@@ -100,16 +100,12 @@ require(["jquery", "underscore", "hashchange", "interface","machtnetz","jit","co
 			}
  		});
 		
+        window.goto=function(a) {
+				var now=$.parseParams(document.location.hash)
+				$.extend(now,$.parseParams(a));
+				document.location.hash="#"+$.param(now);
+		};
         
         
-        /*    
-        $(window).resize(function(e) {
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(function() {
-                    $(window).hashchange();
-                }, 500);
-            });
-            
-        }); */
 	});
 });
