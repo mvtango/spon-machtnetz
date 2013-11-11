@@ -22,8 +22,8 @@ define(['jquery', 'underscore', 'machtnetzloader', 'd3', 'config'],
             height = $graph.height();
 
         force = d3.layout.force()
-            //.charge(-120)
-            //.linkDistance(30)
+            .charge(-80)
+            .linkDistance(30)
             .size([width, height]);
         
         svg = d3.select("#graph").append("svg")
@@ -33,9 +33,6 @@ define(['jquery', 'underscore', 'machtnetzloader', 'd3', 'config'],
 
 
     function renderGraph(nodes, edges, centralNode) {
-        initGraph();
-        var links = edgesToIndices(nodes, edges);
-
         _.each(nodes, function(node) {
             if (node.id == centralNode) {
                 node.x = $graph.width() / 2;
@@ -46,21 +43,20 @@ define(['jquery', 'underscore', 'machtnetzloader', 'd3', 'config'],
         
         force
             .nodes(nodes)
-            .links(links)
-            .gravity(0.05)
-            .theta(0.6)
-            .linkDistance(40)
+            .links(edges)
             .start();
 
         svg.selectAll(".link").remove();
+
         var link = svg.selectAll(".link")
-                .data(links);
+                .data(edges);
 
         link.enter().append("line")
                 .attr("class", "link")
                 .style("stroke-width", 1);
 
         svg.selectAll(".node").remove();
+
         var node = svg.selectAll(".node")
                 .data(nodes);
         node.enter().append("circle")
@@ -97,32 +93,9 @@ define(['jquery', 'underscore', 'machtnetzloader', 'd3', 'config'],
         });
     }
 
-
-    function edgesToIndices(nodes, edges) {
-        // for great glory and d3.
-        var map = {},
-            links = [];
-        _.each(nodes, function(node, index) {
-            map[node.id] = node;
-        });
-        _.each(edges, function(edge) {
-            var link = _.extend({}, edge);
-            link.source = map[edge.source];
-            link.target = map[edge.target];
-            if (link.source===undefined) {
-                console.log(link);
-            }
-            links.push(link);
-        });
-        return links;
-    }
-    
-
     function focus(centralNode, depth) {
         initGraph();
         loader.graphSection(centralNode, depth, function(nodes, edges) {
-            //console.log(nodes.length);
-            //console.log(edges.length);
             renderInfo(centralNode, nodes);
 
             // TODO: skip if mobile.

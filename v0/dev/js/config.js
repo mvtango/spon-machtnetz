@@ -53,6 +53,8 @@ define(['jquery', 'underscore'], function($, _) {
 		});
 	}
 
+	window.goto = jumpRelative;
+
 	return { 
 		'debug' : true,
 		'timeout' : 30, /* seconds before loader throws a timeout */

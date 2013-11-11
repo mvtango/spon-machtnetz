@@ -46,8 +46,7 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
 
     function loadNodes(sheet, settings) {
         /* Worksheets mit Netzknoten sind in settings.nodes gelistet */
-        var nodeIDs = [],
-            nodes = [];
+        var nodes = {};
 
         _.each(settings.nodes.split(/ *, */), function(type) {
             if (!(type in sheet)) {
@@ -58,24 +57,26 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
             if (!hasColumns(table, ['name', 'id'])) return;
 
             _(table.all()).each(function(node, rowIndex) {
-                if (_.contains(nodeIDs, node.id)) {
+                if (_.contains(_.keys(nodes), node.id)) {
                     config.log("FEHLER","Tabelle <i>",type,"</i>, Zeile <i>",rowIndex+2,"</i>: die id <b>",node.id,"</b> ist doppelt vergeben.");
                     return;
                 }
-                nodeIDs.push(node.id);
                 node.type = type;
                 node.line = rowIndex + 2;
                 node = _.extend(node, settings[type] || {});
-                nodes.push(node);
+                node._inbound = [];
+                node._outbound = [];
+                nodes[node.id] = node;
             });
         });
-        nodesDfd.resolve(nodes);
-        return nodeIDs;
+        nodesDfd.resolve(_.values(nodes));
+        return nodes;
     }
 
-    function loadEdges(sheet, settings, nodeIDs) {
+    function loadEdges(sheet, settings, nodes) {
         /* Worksheets mit Kanten sind in settings.edges gelistet */
-        var edges = [];
+        var edges = [],
+            nodeIDs = _.keys(nodes);
         _(settings.edges.split(/ *, *-/)).each(function(type) {
             if (!(type in sheet)) {
                 config.log("FEHLER","Tabelle <i>", type,"</i> nicht vorhanden. Die Tabelle ist in der Tabelle <i>settings</i> unter <i>edges</i> aufgelistet und sollte Netzverbindungen enthalten.");
@@ -97,6 +98,10 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                     config.log("FEHLER","Tabelle <i>", type,"</i>, Zeile <i>", edge.line ,"</i> Spalte <i>target</i>: Der Netzknoten <b>", edge.target ,"</b> fehlt.");
                     return;
                 }
+                edge.source = nodes[edge.source];
+                edge.source._outbound.push(edge);
+                edge.target = nodes[edge.target];
+                edge.target._inbound.push(edge);
                 edge.id = edge.source + '>->' + edge.target;
                 edges.push(edge);
             });
@@ -129,8 +134,8 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                 clearTimeout(spreadsheetTimeout);
 
                 var settings = loadSettings(data.settings);
-                var nodeIDs = loadNodes(data, settings);
-                loadEdges(data, settings, nodeIDs);
+                var nodes = loadNodes(data, settings);
+                loadEdges(data, settings, nodes);
                 loadTemplates(data.templates);
                 config.settings = settings;
                 callback(settings);
@@ -143,29 +148,31 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
             selectedNodeIDs = [centralNode],
             selectedEdges = [],
             selectedEdgeIDs = [];
+
         edgesDfd.then(function(allEdges) {
             while(depth-- > 0) {
                 var newEdges = [],
-                    newNodes = [];
+                    newNodes = [],
+                    newNodeIDs = [];
                 _.each(allEdges, function(edge) {
-                    if (_.contains(selectedEdgeIDs, edge.id)) {
+                    if (_.contains(selectedEdges, edge)) {
                         return;
                     }
-                    var source = _.contains(selectedNodeIDs, edge.source),
-                        target = _.contains(selectedNodeIDs, edge.target);
+
+                    var source = _.contains(selectedNodeIDs, edge.source.id),
+                        target = _.contains(selectedNodeIDs, edge.target.id);
                     if ((source || target) && !(source && target)) {
                         selectedEdges.push(edge);
-                        newEdges.push(edge.id);
                         if (!source) {
-                            newNodes.push(edge.source);
+                            newNodeIDs.push(edge.source.id);
                         }
                         if (!target) {
-                            newNodes.push(edge.target);
+                            newNodeIDs.push(edge.target.id);
                         }
                     }
                 });
-                selectedEdgeIDs = selectedEdgeIDs.concat(newEdges);
-                selectedNodeIDs = selectedNodeIDs.concat(newNodes);
+
+                selectedNodeIDs = selectedNodeIDs.concat(newNodeIDs);
             }
 
             nodesDfd.then(function(allNodes) {
