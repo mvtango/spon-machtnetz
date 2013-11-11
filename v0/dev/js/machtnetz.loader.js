@@ -30,7 +30,7 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
             var r = t.all()[0];
             _(nn).each(function(n) {
                 if (!(n in r)) {
-                    log("FEHLER","Tabelle <i>",t,"<i> fehlt die Spalte <i>",n,"</i>");
+                    config.log("FEHLER","Tabelle <i>",t,"<i> fehlt die Spalte <i>",n,"</i>");
                     passed=false;
                 }
             });
@@ -41,7 +41,7 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
             var passed=true;
             _(nn).each(function(n) {
                 if (!(edge[n] in nodes)) {
-                    log("FEHLER","Tabelle <i>",t,"</i>, Zeile <i>",z+2,"</i> Spalte <i>",n,"</i>: Der Netzknoten <b>",edge[n],"</b> fehlt.");
+                    config.log("FEHLER","Tabelle <i>",t,"</i>, Zeile <i>",z+2,"</i> Spalte <i>",n,"</i>: Der Netzknoten <b>",edge[n],"</b> fehlt.");
                     passed=false;
                 }
             });
@@ -50,13 +50,13 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
 
         log("Warte auf Spreadsheet ",spreadsheet);
         var spreadsheetTimeout = setTimeout(function() {
-                log('Spreadheet nicht veröffentlicht? Nicht geladen nach', config.timeout, 'Sekunden.<br/>', '<a href="_">_</a>'.replace("_",spreadsheet));
+                config.log('Spreadheet nicht veröffentlicht? Nicht geladen nach', config.timeout, 'Sekunden.<br/>', '<a href="_">_</a>'.replace("_",spreadsheet));
                 /* throw "machtnetz loader timeout"; */
                 config.fatal("Die Daten konnten nicht geladen werden.");
         }, config.timeout*1000);
         nodes={} ;
         settings={};
-        tabletop.init({ key : spreadsheet, debug: debug,
+        tabletop.init({key : spreadsheet, debug: debug,
             callback : function (data) {
                        clearTimeout(spreadsheetTimeout);
                        /* Templates aus Worksheet 'templates' */
@@ -71,7 +71,7 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                             try {
                                 settings[v.name]=(new Function("return "+v.value))();
                             } catch(e) {
-                                log('FEHLER in Tabelle <i>settings</i>, Zeile ',z+2,'(',v.name,') "'+v.value+'" ',e);
+                                config.log('FEHLER in Tabelle <i>settings</i>, Zeile ',z+2,'(',v.name,') "'+v.value+'" ',e);
                             }
                          } else {
                             settings[v.name]=v.value;
@@ -83,7 +83,7 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                              if (check_columns(data[n],['name','id'])) {
                                  _(data[n].all()).each(function(node,z) {
                                     if (node.id in nodes) {
-                                        log("FEHLER","Tabelle <i>",n,"</i>, Zeile <i>",z+2,"</i>: die id <b>",node.id,"</b> ist doppelt vergeben. Sie kommt auch in Tabelle <i>",nodes[node.id].type,"</i>, Zeile <i>",nodes[node.id].line,"</i> vor");
+                                        config.log("FEHLER","Tabelle <i>",n,"</i>, Zeile <i>",z+2,"</i>: die id <b>",node.id,"</b> ist doppelt vergeben. Sie kommt auch in Tabelle <i>",nodes[node.id].type,"</i>, Zeile <i>",nodes[node.id].line,"</i> vor");
                                         return;
                                     }
                                     node.type=n;
@@ -91,10 +91,10 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                                     gnode={ 'name' : node.name, 'id' : node.id, 'adjacencies' : [], data : _(node).extend(settings[n] || {})};
                                     nodes[node.id]=gnode;
                                  });
-                             log("Tabelle <i>",n,"</i>: ",data[n].all().length," Einträge für Netzknoten.");
+                            config.log("Tabelle <i>",n,"</i>: ",data[n].all().length," Einträge für Netzknoten.");
                           }
                        } else {
-                            log("FEHLER","Tabelle <i>",n,"</i> nicht vorhanden. Die Tabelle ist in der Tabelle <i>settings</i> unter <i>edges</i> aufgelistet und sollte Netzknoten enthalten.");
+                            config.log("FEHLER","Tabelle <i>",n,"</i> nicht vorhanden. Die Tabelle ist in der Tabelle <i>settings</i> unter <i>edges</i> aufgelistet und sollte Netzknoten enthalten.");
                       }
                      });
 
@@ -110,15 +110,15 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                                         nodes[edge.to].adjacencies.push({ 'nodeFrom' : edge.from, 'nodeTo' : edge.to, 'data' : _(edge).extend(settings[n] || {}) });
                                     }
                                 });
-                            log("Tabelle <i>",n,"</i>: ",data[n].all().length," Einträge für Netzverbindungen.");
+                            config.log("Tabelle <i>",n,"</i>: ",data[n].all().length," Einträge für Netzverbindungen.");
                             }
                         } else {
-                            log("FEHLER","Tabelle <i>",n,"</i> nicht vorhanden. Die Tabelle ist in der Tabelle <i>settings</i> unter <i>edges</i> aufgelistet und sollte Netzverbindungen enthalten.");
+                            config.log("FEHLER","Tabelle <i>",n,"</i> nicht vorhanden. Die Tabelle ist in der Tabelle <i>settings</i> unter <i>edges</i> aufgelistet und sollte Netzverbindungen enthalten.");
                         }
                     });
 
-                config.settings=settings;
-                callback({ nodes : nodes, settings: settings });
+                config.settings = settings;
+                callback({nodes: nodes, settings: settings});
                 }
             });
         }

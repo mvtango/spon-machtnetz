@@ -24,22 +24,22 @@ require.config({
         jquerymustache:     "jquery.mustache.amd",
         jqueryparseparams:  "jquery.parseParams",
         jit:                "jit",
-        machtnetz:          "machtnetz",
         machtnetzloader:    "machtnetz.loader",
         machtnetzrenderer:  "machtnetz.renderer"
     }
 });
 
-require(["jquery", "underscore", "hashchange", "interface", "machtnetz", "jit", "config", "jquerymustache", "jqueryparseparams"],
-        function ($, _, jqhash, mSponInterface, machtnetz, jit, config) {
+require(["jquery", "underscore", "hashchange", "interface", "machtnetzloader", "machtnetzrenderer", "config", "jquerymustache", "jqueryparseparams"],
+        function ($, _, jqhash, mSponInterface, loader, renderer, config) {
 
-   $("#oldie").hide();
-   config.loading("Grafik wird vorbereitet");
+    $("#oldie").hide();
+    config.loading("Grafik wird vorbereitet");
    
-   var $tabs = $('.tabsBar .tab');
+    var nodes = null,
+        $tabs = $('.tabsBar .tab');
 
-   function route(params) {
-        var state=_($.parseParams(config.settings.start)).extend($.parseParams(params));
+    function route(params) {
+        var state = _($.parseParams(config.settings.start)).extend($.parseParams(params));
         //config.log("HASHCHANGE "+JSON.stringify(state));
         if (state.debug) {
             $(".debugwrapper").css({ visibility: "visible" });
@@ -51,12 +51,11 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetz", "jit", 
             $(".debugwrapper #debug").removeClass("always");
         }
         if (state.name) {
-            var children = parseInt(state.children, 10);
-            machtnetz.focus(state.name, children);
+            var childLevels = parseInt(state.levels, 2);
+            //machtnetz.focus(state.name, childLevels);
+            renderer.focus(state.name, childLevels, nodes);
         }
     }
-
-    window.focus_graph = machtnetz.focus;
 
     $(document).ready(function(){
         mSponInterface.init();
@@ -72,7 +71,9 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetz", "jit", 
             source = config.spreadsheet;
         }
 
-        machtnetz.load(source, function(data) {
+        loader.load(source, function(data) {
+            nodes = data.nodes;
+
             if ($(window).width() > data.settings.graphwidth) {
                 $("#graph").fadeIn({
                     complete: function() {
@@ -81,6 +82,7 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetz", "jit", 
                 });
                 config.log("Grafik wird nicht angezeigt. Fensterbreite unter "+data.settings.graphwidth+"px - einstellbar in settings.graphwidth");
             }
+
             $("#detail").css({display: "inline-block"}).fadeIn();
             config.loading("Grafik wird vorbereitet ...");
 
@@ -89,7 +91,7 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetz", "jit", 
             $(".spCredit").html(data.settings.source);
             
             if (!location.hash) {
-                location.hash = "#"+data.settings.start;
+                location.hash = "#" + data.settings.start;
             } else {
                 $(window).hashchange();
             }
@@ -97,7 +99,7 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetz", "jit", 
         
         window.goto=function(a) {
                 var now = $.parseParams(document.location.hash);
-                $.extend(now,$.parseParams(a));
+                $.extend(now, $.parseParams(a));
                 document.location.hash = "#"+$.param(now);
         };
         

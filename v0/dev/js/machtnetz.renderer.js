@@ -74,13 +74,13 @@ define(['jquery', 'underscore', 'jit', 'config'],
             //Implement the same handler for touchscreens  
             onTouchMove: function(node, eventInfo, e) {  
                 jit.util.event.stop(e); //stop default touchmove event  
-                this.onDragMove(node, eventInfo, e);  
+                this.onDragMove(node, eventInfo, e);
             },  
             //Add also a click handler to nodes  
-            onClick: function(node) {  
+            onClick: function(node) {
                 if(!node) return;
-                focus(node.id,2);   
-            }  
+                focus(node.id, 2);
+            }
         },  
         //Number of iterations for the FD algorithm  
         iterations: 200,  
