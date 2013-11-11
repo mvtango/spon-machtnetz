@@ -65,20 +65,29 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetz", "jit", 
                 route(location.hash);
                 e.preventDefault();
         });
+
         if (document.location.search) {
-            source=$.parseParams(document.location.search).source;
+            source = $.parseParams(document.location.search).source;
         } else {
-            source=config.spreadsheet;
+            source = config.spreadsheet;
         }
+
         machtnetz.load(source, function(data) {
             if ($(window).width() > data.settings.graphwidth) {
-                $("#graph").fadeIn({ complete: function() { $("#graph").removeClass("invisible"); } });
+                $("#graph").fadeIn({
+                    complete: function() {
+                        $("#graph").removeClass("invisible");
+                    }
+                });
                 config.log("Grafik wird nicht angezeigt. Fensterbreite unter "+data.settings.graphwidth+"px - einstellbar in settings.graphwidth");
             }
-            $("#detail").css({ display: "inline-block"}).fadeIn();
+            $("#detail").css({display: "inline-block"}).fadeIn();
             config.loading("Grafik wird vorbereitet ...");
+
             $("#topics .tab:first-child").html(data.settings.title);
+            
             $(".spCredit").html(data.settings.source);
+            
             if (!location.hash) {
                 location.hash = "#"+data.settings.start;
             } else {
