@@ -51,7 +51,7 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetzloader", "
                 $(".debugwrapper #debug").removeClass("always");
             }
             if (state.name) {
-                var depth = parseInt(state.depth, 10);
+                var depth = parseInt(state.depth, 10) || settings.showlevels || 2;
                 renderer.focus(state.name, depth);
             }
         });
