@@ -9,8 +9,8 @@ require.config({
         mustache :  {
             exports: "Mustache"
         },
-        jit :  {
-            exports: "$jit"
+        d3 :  {
+            exports: "d3"
         }
     },
     paths: {
@@ -23,7 +23,7 @@ require.config({
         mustache:           "mustache",
         jquerymustache:     "jquery.mustache.amd",
         jqueryparseparams:  "jquery.parseParams",
-        jit:                "jit",
+        d3:                 "d3",
         machtnetzloader:    "machtnetz.loader",
         machtnetzrenderer:  "machtnetz.renderer"
     }
@@ -32,15 +32,12 @@ require.config({
 require(["jquery", "underscore", "hashchange", "interface", "machtnetzloader", "machtnetzrenderer", "config", "jquerymustache", "jqueryparseparams"],
         function ($, _, jqhash, mSponInterface, loader, renderer, config) {
 
-    $("#oldie").hide();
     config.loading("Grafik wird vorbereitet");
    
     var $tabs = $('.tabsBar .tab');
 
-    function route(params) {
-        loader.settings.then(function(settings) {
-            var state = _($.parseParams(settings.start)).extend($.parseParams(params));
-            //config.log("HASHCHANGE "+JSON.stringify(state));
+    function route() {
+        config.params(function(state, settings) {
             if (state.debug) {
                 $(".debugwrapper").css({ visibility: "visible" });
                 if (state.debug+"">"1") {
@@ -61,8 +58,8 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetzloader", "
         mSponInterface.init();
         $("#graphframe").width($(window).width());
         $(window).hashchange(function(e) {
-                route(location.hash);
-                e.preventDefault();
+                route();
+                e.defaultPrevented = true;
         });
 
         if (document.location.search) {
@@ -94,13 +91,5 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetzloader", "
                 $(window).hashchange();
             }
         });
-        
-        /*
-        window.goto=function(a) {
-                var now = $.parseParams(document.location.hash);
-                $.extend(now, $.parseParams(a));
-                document.location.hash = "#"+$.param(now);
-        };
-        */
     });
 });

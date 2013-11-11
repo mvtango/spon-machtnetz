@@ -19,8 +19,7 @@
 define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
     function($, _, tabletop, config) {
 
-    var settingsDfd = $.Deferred(),
-        nodesDfd = $.Deferred(),
+    var nodesDfd = $.Deferred(),
         edgesDfd = $.Deferred();
 
     function loadTemplates(templates) {
@@ -41,7 +40,7 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                 _settings[row.name] = row.value;
             }
         });
-        settingsDfd.resolve(_settings);
+        config.settings.resolve(_settings);
         return _settings;
     }
 
@@ -92,9 +91,11 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                 edge = _.extend(edge, settings[type] || {});
                 if (!_.contains(nodeIDs, edge.source)) {
                     config.log("FEHLER","Tabelle <i>", type,"</i>, Zeile <i>", edge.line ,"</i> Spalte <i>source</i>: Der Netzknoten <b>", edge.source ,"</b> fehlt.");
+                    return;
                 }
                 if (!_.contains(nodeIDs, edge.target)) {
                     config.log("FEHLER","Tabelle <i>", type,"</i>, Zeile <i>", edge.line ,"</i> Spalte <i>target</i>: Der Netzknoten <b>", edge.target ,"</b> fehlt.");
+                    return;
                 }
                 edge.id = edge.source + '>->' + edge.target;
                 edges.push(edge);
@@ -144,6 +145,8 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
             selectedEdgeIDs = [];
         edgesDfd.then(function(allEdges) {
             while(depth-- > 0) {
+                var newEdges = [],
+                    newNodes = [];
                 _.each(allEdges, function(edge) {
                     if (_.contains(selectedEdgeIDs, edge.id)) {
                         return;
@@ -152,15 +155,17 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                         target = _.contains(selectedNodeIDs, edge.target);
                     if ((source || target) && !(source && target)) {
                         selectedEdges.push(edge);
-                        selectedEdgeIDs.push(edge.id);
+                        newEdges.push(edge.id);
                         if (!source) {
-                            selectedNodeIDs.push(edge.source);
+                            newNodes.push(edge.source);
                         }
                         if (!target) {
-                            selectedNodeIDs.push(edge.target);
+                            newNodes.push(edge.target);
                         }
                     }
                 });
+                selectedEdgeIDs = selectedEdgeIDs.concat(newEdges);
+                selectedNodeIDs = selectedNodeIDs.concat(newNodes);
             }
 
             nodesDfd.then(function(allNodes) {
@@ -176,7 +181,6 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
 
     return {
         'load' : load,
-        'settings': settingsDfd,
         'graphSection': graphSection
     };
 });

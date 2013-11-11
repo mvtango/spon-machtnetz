@@ -49,7 +49,6 @@ div#graphframe {
 	height: 550px;
 	overflow: hidden;
 	text-align: center;
-
 }
 
 div#detail {
@@ -92,9 +91,18 @@ div#graph {
 	width: 500px;
 	height: 550px;
 	float: left;
-	background-color: #d9e3f3;
+	b-ackground-color: #d9e3f3;
 }
 
+#graph svg .node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+#graph svg .link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
 
 div.tooltip {
 	padding: 2px;
@@ -132,3 +140,6 @@ div.debugwrapper div#debug.always {
 	background-color: #F0E000;
 	color: #000;
 }
+
+
+

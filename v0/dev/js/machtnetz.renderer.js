@@ -3,178 +3,141 @@
  *
  */
 
-define(['jquery', 'underscore', 'machtnetzloader', 'jit', 'config'],
-    function($, _, loader, jit, config) {
+define(['jquery', 'underscore', 'machtnetzloader', 'd3', 'config'],
+    function($, _, loader, d3, config) {
 
-    var graph,
-        nodes,
-        node_lookup = {},
-        $detail = $('#detail');
+    var initialized = false,
+        $detail = $('#detail'),
+        $graph = $('#graph'),
+        force = null,
+        svg = null;
 
-    function get_graph(nodes) {
-        if (typeof graph == "undefined") {
-         graph = new jit.ForceDirected({  
-            injectInto: 'graph',  
-            //Enable zooming and panning  
-            //by scrolling and DnD  
-            Navigation: {  
-                enable: true,  
-                //Enable panning events only if we're dragging the empty  
-                //canvas (and not a node).  
-                panning: 'avoid nodes',  
-                zooming: 10 //zoom speed. higher is more sensible  
-            },  
-            // Change node and edge styles such as  
-            // color and width.  
-            // These properties are also set per node  
-            // with dollar prefixed data-properties in the  
-            // JSON structure.  
-            Node: {  
-                overridable: true  
-            },  
-            Edge: {  
-                overridable: true,  
-                color: '#23A4FF',  
-                lineWidth: 0.4  
-            },  
-            //Native canvas text styling  
-            Label: _({  
-                type: 'Native', //Native or HTML  
-                size: 10,  
-                style: 'bold',
-                color: "#000000",  
-            }).extend(config.label),  
-            //Add Tips  
-            Tips: {  
-                enable: true,  
-                onShow: function(tip, node) {  
-                //display node info in tooltip 
-                n=node_lookup[node.id];
-                console.log(n); 
-                $(tip).mustache(n.data.type+"-tooltip", n,{ method: 'html' });  
-                }  
-            },  
-        // Add node events  
-        Events: {  
-            enable: true,  
-            type: 'Native',  
-            //Change cursor style when hovering a node  
-            onMouseEnter: function() {  
-                graph.canvas.getElement().style.cursor = 'move';  
-            },  
-            onMouseLeave: function() {  
-                graph.canvas.getElement().style.cursor = '';  
-            },  
-            //Update node positions when dragged  
-            onDragMove: function(node, eventInfo, e) {  
-                var pos = eventInfo.getPos();  
-                node.pos.setc(pos.x, pos.y);  
-                graph.plot();  
-            },  
-            //Implement the same handler for touchscreens  
-            onTouchMove: function(node, eventInfo, e) {  
-                jit.util.event.stop(e); //stop default touchmove event  
-                this.onDragMove(node, eventInfo, e);
-            },  
-            //Add also a click handler to nodes  
-            onClick: function(node) {
-                if(!node) return;
-                focus(node.id, 2);
-            }
-        },  
-        //Number of iterations for the FD algorithm  
-        iterations: 200,
-        //Edge length  
-        levelDistance: 130,
-        // Add text to the labels. This method is only triggered  
-        // on label creation and only for DOM labels (not native canvas ones).  
-        onCreateLabel: function(domElement, node){  
-            domElement.innerHTML = node.name;
-            $(domElement).css( _({fontSize:"0.8em", color: "#888"}).extend(config.label));  
-        },  
-        // Change node styles when DOM labels are placed  
-        // or moved.  
-        onPlaceLabel: function(domElement, node){  
-            var style = domElement.style;  
-            var left = parseInt(style.left);  
-            var top = parseInt(style.top);  
-            var w = domElement.offsetWidth;  
-            style.left = (left - w / 2) + 'px';  
-            style.top = (top + 10) + 'px';  
-            style.display = '';  
-         }  
-        });  
-        }
-      return graph;
+
+    function initGraph() {
+        if (initialized) return;
+        initialized = true;
+        console.log("Initialisiere graph....");
+
+        var width = $graph.width(),
+            height = $graph.height();
+
+        force = d3.layout.force()
+            //.charge(-120)
+            //.linkDistance(30)
+            .size([width, height]);
+        
+        svg = d3.select("#graph").append("svg")
+            .attr("width", width)
+            .attr("height", height);
     }
 
 
-    function load_nodes(nodes) {       // load JSON data.  
-      _(nodes).each(function(n) {
-          node_lookup[n.id]=n;
-      });
-      if ($("#graph").css("display") == "none") {
-          config.loading(false);
-          return;
-      }
-      var graph=get_graph();
-      console.log(nodes);
-      graph.loadJSON(nodes);  
-      // compute positions incrementally and animate.  
-      graph.computeIncremental({  
-        iter: 40,  
-        property: 'end',  
-        onStep: function(perc){  
-          config.loading('Berechnen '+".....".substr(0,Math.floor(perc/20)));  
-        },  
-        onComplete: function(){  
-          config.loading(false);
-          graph.animate({
-           modes: ['linear'],  
-           transition: jit.Trans.Elastic.easeOut,  
-           duration: 2500  
-         });  
-        }  
-      });
-    }  
+    function renderGraph(nodes, edges, centralNode) {
+        initGraph();
+        var links = edgesToIndices(nodes, edges);
+
+        _.each(nodes, function(node) {
+            if (node.id == centralNode) {
+                node.x = $graph.width() / 2;
+                node.y = $graph.height() / 2;
+                node.fixed = true;
+            }
+        });
+        
+        force
+            .nodes(nodes)
+            .links(links)
+            .gravity(0.05)
+            .theta(0.6)
+            .linkDistance(40)
+            .start();
+
+        svg.selectAll(".link").remove();
+        var link = svg.selectAll(".link")
+                .data(links);
+
+        link.enter().append("line")
+                .attr("class", "link")
+                .style("stroke-width", 1);
+
+        svg.selectAll(".node").remove();
+        var node = svg.selectAll(".node")
+                .data(nodes);
+        node.enter().append("circle")
+                .attr("class", "node")
+                .attr("r", function(d) { return d.id == centralNode ? d.size * 1.5 : d.size; })
+                .style("fill", function(d) { return d.color; })
+                .call(force.drag)
+                .on('click', function(d) {
+                    config.jumpRelative({'name': d.id});
+                });
+        
+        node.append("title")
+            .style("stroke", function(d) { return d.color; })
+            .text(function(d) { return d.name; });
+
+        
+        force.on("tick", function() {
+            link.attr("x1", function(d) { return d.source.x; })
+                .attr("y1", function(d) { return d.source.y; })
+                .attr("x2", function(d) { return d.target.x; })
+                .attr("y2", function(d) { return d.target.y; });
+
+            node.attr("cx", function(d) { return d.x; })
+                .attr("cy", function(d) { return d.y; });
+        });
+    }
+
 
     function renderInfo(centralNode, nodes) {
         _.each(nodes, function(node) {
             if (node.id == centralNode) {
-                $detail.mustache(node.type+"-info", node, {method: 'html'});  
+                $detail.mustache(node.type+"-info", node, {method: 'html'});
             }
         });
     }
 
+
     function edgesToIndices(nodes, edges) {
         // for great glory and d3.
         var map = {},
-            _edges = [];
+            links = [];
         _.each(nodes, function(node, index) {
-            map[node.id] = index;
+            map[node.id] = node;
         });
         _.each(edges, function(edge) {
-            _edges.push(_.extend({}, edge, {
-                'source': map[edge.source],
-                'target': map[edge.target]
-            }));
+            var link = _.extend({}, edge);
+            link.source = map[edge.source];
+            link.target = map[edge.target];
+            if (link.source===undefined) {
+                console.log(link);
+            }
+            links.push(link);
         });
-        return _edges;
+        return links;
     }
-
     
+
     function focus(centralNode, depth) {
+        initGraph();
         loader.graphSection(centralNode, depth, function(nodes, edges) {
             //console.log(nodes.length);
             //console.log(edges.length);
             renderInfo(centralNode, nodes);
+
+            // TODO: skip if mobile.
+            config.loading(false);
+            if ($graph.css("display") == "none") {
+                return;
+            }
+            renderGraph(nodes, edges, centralNode);
         });
     }
 
 
-    return { 
+    return {
         'focus': focus,
-        'graph': graph 
+        'graph': graph
     };
 
 });
