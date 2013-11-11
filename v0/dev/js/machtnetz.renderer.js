@@ -83,9 +83,9 @@ define(['jquery', 'underscore', 'machtnetzloader', 'jit', 'config'],
             }
         },  
         //Number of iterations for the FD algorithm  
-        iterations: 200,  
+        iterations: 200,
         //Edge length  
-        levelDistance: 130,  
+        levelDistance: 130,
         // Add text to the labels. This method is only triggered  
         // on label creation and only for DOM labels (not native canvas ones).  
         onCreateLabel: function(domElement, node){  
@@ -109,57 +109,6 @@ define(['jquery', 'underscore', 'machtnetzloader', 'jit', 'config'],
     }
 
 
-    
-    function filter_nodes(s, max, nodes) {
-        var r=[];
-        var already={};
-        var rr=[];
-        if (isNaN(parseInt(max, 10))) {
-            i=config.settings.showlevels || 2;
-        } else {
-            i=parseInt(max)
-        };
-        config.log("s="+s+" max="+i);
-        r=_(nodes).values().filter(function(n) { return ((n.name.indexOf(s)>-1) || (n.id==s)) });
-        _(r).each(function(k) { already[k.id]=true ; });
-        while(i--) {
-            _(r).each(function(node) {
-                _(node.adjacencies).each(function(edge) {
-                    if (!(edge.nodeTo in already)) {
-                        rr.push(nodes[edge.nodeTo]);
-                        already[edge.nodeTo]=true;
-                    }
-                    if (!(edge.nodeFrom in already)) {
-                        rr.push(nodes[edge.nodeFrom]);
-                        already[edge.nodeFrom]=true;
-                    }
-                });
-            });
-            _(rr).each(function(n) { r.push(n); });
-            rr=[]; 
-        }
-        /* 
-        _(r).each(function(node) {
-            _(node.adjacencies).each(function(edge) {
-                if (!(edge.nodeTo in already)) {
-                    var nn=nodes[edge.nodeTo];
-                    rr.push({ name : nn.name, id: nn.id, data: nn.data});
-                }
-                if (!(edge.nodeFrom in already)) {
-                    var nn=nodes[edge.nodeFrom];
-                    rr.push({ name : nn.name, id: nn.id, data: nn.data});
-                }
-            });
-        });
-        _(rr).each(function(n) { r.push(n); });
-        */
-        return r;   
-    }
-
-
-
-
-
     function load_nodes(nodes) {       // load JSON data.  
       _(nodes).each(function(n) {
           node_lookup[n.id]=n;
@@ -180,7 +129,7 @@ define(['jquery', 'underscore', 'machtnetzloader', 'jit', 'config'],
         },  
         onComplete: function(){  
           config.loading(false);
-          graph.animate({  
+          graph.animate({
            modes: ['linear'],  
            transition: jit.Trans.Elastic.easeOut,  
            duration: 2500  
@@ -189,20 +138,36 @@ define(['jquery', 'underscore', 'machtnetzloader', 'jit', 'config'],
       });
     }  
 
-    function display_node(n) {
-        var o = $.extend({}, n);
-        _(o.adjacencies).each(function(a) {
-            var ln = o.id == a.nodeTo ? a.nodeFrom : a.nodeTo
-            a.node=node_lookup[ln];
-        })
-        $detail.mustache(n.data.type+"-info", n, {method: 'html'});  
+    function renderInfo(centralNode, nodes) {
+        _.each(nodes, function(node) {
+            if (node.id == centralNode) {
+                $detail.mustache(node.type+"-info", node, {method: 'html'});  
+            }
+        });
+    }
+
+    function edgesToIndices(nodes, edges) {
+        // for great glory and d3.
+        var map = {},
+            _edges = [];
+        _.each(nodes, function(node, index) {
+            map[node.id] = index;
+        });
+        _.each(edges, function(edge) {
+            _edges.push(_.extend({}, edge, {
+                'source': map[edge.source],
+                'target': map[edge.target]
+            }));
+        });
+        return _edges;
     }
 
     
     function focus(centralNode, depth) {
         loader.graphSection(centralNode, depth, function(nodes, edges) {
-            console.log(nodes.length);
-            console.log(edges.length);
+            //console.log(nodes.length);
+            //console.log(edges.length);
+            renderInfo(centralNode, nodes);
         });
     }
 
