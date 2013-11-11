@@ -3,8 +3,8 @@
  *
  */
 
-define(['jquery', 'underscore', 'jit', 'config'],
-    function($, _, jit, config) {
+define(['jquery', 'underscore', 'machtnetzloader', 'jit', 'config'],
+    function($, _, loader, jit, config) {
 
     var graph,
         nodes,
@@ -199,13 +199,11 @@ define(['jquery', 'underscore', 'jit', 'config'],
     }
 
     
-    function focus(s, i, _nodes) {
-        if (_nodes) {
-            nodes = _nodes;
-        }
-        nodes = filter_nodes(s, i, nodes);
-        load_nodes(nodes);
-        display_node(nodes[0]);
+    function focus(centralNode, depth) {
+        loader.graphSection(centralNode, depth, function(nodes, edges) {
+            console.log(nodes.length);
+            console.log(edges.length);
+        });
     }
 
 

@@ -66,12 +66,8 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                 nodeIDs.push(node.id);
                 node.type = type;
                 node.line = rowIndex + 2;
-                nodes.push({
-                    'name': node.name,
-                    'id': node.id,
-                    'adjacencies': [],
-                    'data': _(node).extend(settings[type] || {})
-                });
+                node = _.extend(node, settings[type] || {});
+                nodes.push(node);
             });
         });
         nodesDfd.resolve(nodes);
@@ -90,17 +86,17 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
             var table = sheet[type];
             if (!hasColumns(table, ['source', 'target'])) return;
 
-            _(table.all()).each(function(node, rowIndex) {
-                var edge = _({
-                    'line': rowIndex + 2,
-                    'type': type
-                }).extend(settings[type] || {});
+            _(table.all()).each(function(edge, rowIndex) {
+                edge.line = rowIndex + 2;
+                edge.type = type;
+                edge = _.extend(edge, settings[type] || {});
                 if (!_.contains(nodeIDs, edge.source)) {
                     config.log("FEHLER","Tabelle <i>", type,"</i>, Zeile <i>", edge.line ,"</i> Spalte <i>source</i>: Der Netzknoten <b>", edge.source ,"</b> fehlt.");
                 }
                 if (!_.contains(nodeIDs, edge.target)) {
                     config.log("FEHLER","Tabelle <i>", type,"</i>, Zeile <i>", edge.line ,"</i> Spalte <i>target</i>: Der Netzknoten <b>", edge.target ,"</b> fehlt.");
                 }
+                edge.id = edge.source + '>->' + edge.target;
                 edges.push(edge);
             });
         });
@@ -141,8 +137,46 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
         });
     }
 
+    function graphSection(centralNode, depth, callback) {
+        var selectedNodes = [],
+            selectedNodeIDs = [centralNode],
+            selectedEdges = [],
+            selectedEdgeIDs = [];
+        edgesDfd.then(function(allEdges) {
+            while(depth-- > 0) {
+                _.each(allEdges, function(edge) {
+                    if (_.contains(selectedEdgeIDs, edge.id)) {
+                        return;
+                    }
+                    var source = _.contains(selectedNodeIDs, edge.source),
+                        target = _.contains(selectedNodeIDs, edge.target);
+                    if ((source || target) && !(source && target)) {
+                        selectedEdges.push(edge);
+                        selectedEdgeIDs.push(edge.id);
+                        if (!source) {
+                            selectedNodeIDs.push(edge.source);
+                        }
+                        if (!target) {
+                            selectedNodeIDs.push(edge.target);
+                        }
+                    }
+                });
+            }
+
+            nodesDfd.then(function(allNodes) {
+                _.each(allNodes, function(node) {
+                    if (_.contains(selectedNodeIDs, node.id)) {
+                        selectedNodes.push(node);
+                    }
+                });
+                callback(selectedNodes, selectedEdges);
+            });
+        });
+    }
+
     return {
         'load' : load,
-        'settings': settingsDfd
+        'settings': settingsDfd,
+        'graphSection': graphSection
     };
 });

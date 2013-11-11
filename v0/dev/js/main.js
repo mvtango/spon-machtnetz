@@ -35,8 +35,7 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetzloader", "
     $("#oldie").hide();
     config.loading("Grafik wird vorbereitet");
    
-    var nodes = null,
-        $tabs = $('.tabsBar .tab');
+    var $tabs = $('.tabsBar .tab');
 
     function route(params) {
         loader.settings.then(function(settings) {
@@ -52,8 +51,8 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetzloader", "
                 $(".debugwrapper #debug").removeClass("always");
             }
             if (state.name) {
-                var childLevels = parseInt(state.levels, 2);
-                renderer.focus(state.name, childLevels, nodes);
+                var depth = parseInt(state.depth, 10);
+                renderer.focus(state.name, depth);
             }
         });
     }
