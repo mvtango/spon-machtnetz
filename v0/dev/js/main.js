@@ -39,22 +39,23 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetzloader", "
         $tabs = $('.tabsBar .tab');
 
     function route(params) {
-        var state = _($.parseParams(config.settings.start)).extend($.parseParams(params));
-        //config.log("HASHCHANGE "+JSON.stringify(state));
-        if (state.debug) {
-            $(".debugwrapper").css({ visibility: "visible" });
-            if (state.debug+"">"1") {
-                $(".debugwrapper #debug").addClass("always");
+        loader.settings.then(function(settings) {
+            var state = _($.parseParams(settings.start)).extend($.parseParams(params));
+            //config.log("HASHCHANGE "+JSON.stringify(state));
+            if (state.debug) {
+                $(".debugwrapper").css({ visibility: "visible" });
+                if (state.debug+"">"1") {
+                    $(".debugwrapper #debug").addClass("always");
+                }
+            } else {
+                $(".debugwrapper").css({ visibility: "hidden" });
+                $(".debugwrapper #debug").removeClass("always");
             }
-        } else {
-            $(".debugwrapper").css({ visibility: "hidden" });
-            $(".debugwrapper #debug").removeClass("always");
-        }
-        if (state.name) {
-            var childLevels = parseInt(state.levels, 2);
-            //machtnetz.focus(state.name, childLevels);
-            renderer.focus(state.name, childLevels, nodes);
-        }
+            if (state.name) {
+                var childLevels = parseInt(state.levels, 2);
+                renderer.focus(state.name, childLevels, nodes);
+            }
+        });
     }
 
     $(document).ready(function(){
@@ -71,38 +72,36 @@ require(["jquery", "underscore", "hashchange", "interface", "machtnetzloader", "
             source = config.spreadsheet;
         }
 
-        loader.load(source, function(data) {
-            nodes = data.nodes;
-
-            if ($(window).width() > data.settings.graphwidth) {
+        loader.load(source, function(settings) {
+            if ($(window).width() > settings.graphwidth) {
                 $("#graph").fadeIn({
                     complete: function() {
                         $("#graph").removeClass("invisible");
                     }
                 });
-                config.log("Grafik wird nicht angezeigt. Fensterbreite unter "+data.settings.graphwidth+"px - einstellbar in settings.graphwidth");
+                config.log("Grafik wird nicht angezeigt. Fensterbreite unter "+settings.graphwidth+"px - einstellbar in settings.graphwidth");
             }
 
             $("#detail").css({display: "inline-block"}).fadeIn();
             config.loading("Grafik wird vorbereitet ...");
 
-            $("#topics .tab:first-child").html(data.settings.title);
+            $("#topics .tab:first-child").html(settings.title);
             
-            $(".spCredit").html(data.settings.source);
+            $(".spCredit").html(settings.source);
             
             if (!location.hash) {
-                location.hash = "#" + data.settings.start;
+                location.hash = "#" + settings.start;
             } else {
                 $(window).hashchange();
             }
         });
         
+        /*
         window.goto=function(a) {
                 var now = $.parseParams(document.location.hash);
                 $.extend(now, $.parseParams(a));
                 document.location.hash = "#"+$.param(now);
         };
-        
-        
+        */
     });
 });
