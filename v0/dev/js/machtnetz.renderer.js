@@ -22,8 +22,9 @@ define(['jquery', 'jqueryqtip', 'underscore', 'machtnetzloader', 'd3', 'config']
             height = $graph.height();
 
         force = d3.layout.force()
-            .charge(-80)
-            .linkDistance(30)
+            .charge(-200)
+            .gravity(0.1)
+            .linkDistance(150)
             .size([width, height]);
         
         svg = d3.select("#graph").append("svg")
@@ -83,7 +84,6 @@ define(['jquery', 'jqueryqtip', 'underscore', 'machtnetzloader', 'd3', 'config']
                 .data(nodes);
         node.enter().append("circle")
                 .attr("class", "node")
-                .attr("data-index", function(d, i) { return i; })
                 .attr("r", function(d) { return d.id == centralNode ? d.size * 2 : d.size; })
                 .style("fill", function(d) { return d.color; })
                 .call(force.drag)
@@ -95,12 +95,6 @@ define(['jquery', 'jqueryqtip', 'underscore', 'machtnetzloader', 'd3', 'config']
             addTooltip(d[0], d[1]);
         });
 
-        /*
-        node.append("title")
-            .style("stroke", function(d) { return d.color; })
-            .text(function(d) { return d.name; });
-        */
-        
         force.on("tick", function() {
             link.attr("x1", function(d) { return d.source.x; })
                 .attr("y1", function(d) { return d.source.y; })

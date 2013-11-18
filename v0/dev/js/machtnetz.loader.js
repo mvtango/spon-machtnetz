@@ -63,6 +63,7 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                 }
                 node.type = type;
                 node.line = rowIndex + 2;
+                node.weight = 0;
                 node = _.extend(node, settings[type] || {});
                 node._inbound = [];
                 node._outbound = [];
@@ -102,6 +103,7 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                 edge.source._outbound.push(edge);
                 edge.target = nodes[edge.target];
                 edge.target._inbound.push(edge);
+                nodes[edge.target].weight++;
                 edge.id = edge.source + '>->' + edge.target;
                 edges.push(edge);
             });
