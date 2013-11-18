@@ -16,8 +16,7 @@
     opacity: 0.5;
 }
 
-.tabContent
-{
+.tabContent {
     height:400px;
 }
 
@@ -39,79 +38,8 @@
     padding-top: 0.5em;
 }
 
+
 /* Debug Console  */
-
-div#graphframe {
-	max-width: 856px;
-	min-width: 356px;
-	width: 856px;
-	float: left;
-	height: 550px;
-	overflow: hidden;
-	text-align: center;
-}
-
-div#detail {
-    width: 346px;
-    min-width: 300px;
-    overflow: auto; 
-	height: 550px;
-	background-color: #ffffff;
-	text-align: left;
-	padding: 5px;
-}
-
-div#detail .header {
-	padding-left:10px;
-	padding-right: 10px;
-	text-align: left;
-	height: 40px;
-	margin-bottom: 5px;
-}
-
-div#detail .body {
-
-	font-size:120%;
-	text-align: center;
-
-}
-
-div#detail .body div {
-
-	display: inline-block;
-	width: 80%;
-	text-align: left;
-	
-
-}
-
-
-
-div#graph {
-	width: 500px;
-	height: 550px;
-	float: left;
-	b-ackground-color: #d9e3f3;
-}
-
-#graph svg .node {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
-
-#graph svg .link {
-  stroke: #999;
-  stroke-opacity: .6;
-}
-
-div.tooltip {
-	padding: 2px;
-	border: 1px solid #808080;
-	max-width: 250px;
-	background-color: #F0F0F0;
-}
-
-
 
 div.debugwrapper {
     position: absolute;
@@ -129,17 +57,86 @@ div#debug {
 }
 
 div.debugwrapper:hover div#debug {
-	display: block;
-	background-color: #F0E000;
-	color: #000;
+    display: block;
+    background-color: #F0E000;
+    color: #000;
 
 }
 
 div.debugwrapper div#debug.always {
-	display: block;
-	background-color: #F0E000;
-	color: #000;
+    display: block;
+    background-color: #F0E000;
+    color: #000;
 }
 
+
+/* Graph */
+
+div#graphframe {
+	max-width: 856px;
+	min-width: 356px;
+	width: 856px;
+	float: left;
+	height: 550px;
+	overflow: hidden;
+	text-align: center;
+}
+
+div#graph {
+    width: 600px;
+    height: 550px;
+    float: left;
+    b-ackground-color: #d9e3f3;
+}
+
+#graph svg .node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+#graph svg .link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+
+/* Sidebar style options. */
+
+div#detail {
+    width: 244px;
+    min-width: 200px;
+    overflow: auto; 
+	height: 550px;
+	background-color: #ffffff;
+	text-align: left;
+	padding: 5px;
+    border-left: 1px solid #ddd;
+}
+
+div#detail .header {
+	p-adding-left:10px;
+	p-adding-right: 10px;
+	text-align: left;
+	h-eight: 40px;
+	margin-bottom: 1em;
+}
+
+div#detail .header img {
+    margin-right: 0.5em;
+    width: 32px;
+    height: 32px;
+}
+
+div#detail .body {
+    clear: both;
+	f-ont-size: 120%;
+	t-ext-align: center;
+}
+
+div#detail .body div {
+	display: inline-block;
+	w-idth: 80%;
+	text-align: left;
+}
 
 
