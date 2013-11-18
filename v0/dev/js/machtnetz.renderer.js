@@ -3,8 +3,8 @@
  *
  */
 
-define(['jquery', 'underscore', 'machtnetzloader', 'd3', 'config'],
-    function($, _, loader, d3, config) {
+define(['jquery', 'jqueryqtip', 'underscore', 'machtnetzloader', 'd3', 'config'],
+    function($, qtip, _, loader, d3, config) {
 
     var initialized = false,
         $detail = $('#detail'),
@@ -31,6 +31,28 @@ define(['jquery', 'underscore', 'machtnetzloader', 'd3', 'config'],
             .attr("height", height);
     }
 
+    function addTooltip(el, node) {
+        var config = {
+            "id": node.id,
+            "position": {
+                "target": 'event',
+                "at": 'bottom center',
+                "viewport": true
+            },
+            "style": {
+                "classes": "rounded"
+            },
+            "show": {
+                "delay": 0 //20
+            },
+            "events": {
+            },
+            "content": {
+                "text": $.Mustache.render(node.type+"-tooltip", node, {method: 'html'})
+            }
+        };
+        $(el).qtip(config);
+    }
 
     function renderGraph(nodes, edges, centralNode) {
         _.each(nodes, function(node) {
@@ -61,17 +83,23 @@ define(['jquery', 'underscore', 'machtnetzloader', 'd3', 'config'],
                 .data(nodes);
         node.enter().append("circle")
                 .attr("class", "node")
-                .attr("r", function(d) { return d.id == centralNode ? d.size * 1.5 : d.size; })
+                .attr("data-index", function(d, i) { return i; })
+                .attr("r", function(d) { return d.id == centralNode ? d.size * 2 : d.size; })
                 .style("fill", function(d) { return d.color; })
                 .call(force.drag)
                 .on('click', function(d) {
                     config.jumpRelative({'name': d.id});
                 });
-        
+
+        _.each(_.zip(node[0], nodes), function(d) {
+            addTooltip(d[0], d[1]);
+        });
+
+        /*
         node.append("title")
             .style("stroke", function(d) { return d.color; })
             .text(function(d) { return d.name; });
-
+        */
         
         force.on("tick", function() {
             link.attr("x1", function(d) { return d.source.x; })

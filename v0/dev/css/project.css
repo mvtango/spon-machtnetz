@@ -79,7 +79,6 @@ div#graphframe {
 	float: left;
 	height: 550px;
 	overflow: hidden;
-	text-align: center;
 }
 
 div#graph {
@@ -108,35 +107,58 @@ div#detail {
     overflow: auto; 
 	height: 550px;
 	background-color: #ffffff;
-	text-align: left;
-	padding: 5px;
+	p-adding: 5px;
     border-left: 1px solid #ddd;
 }
 
 div#detail .header {
-	p-adding-left:10px;
-	p-adding-right: 10px;
-	text-align: left;
-	h-eight: 40px;
-	margin-bottom: 1em;
+	height: 32px;
+    padding-left: 0.4em;
+    margin: 0 0 1em 0;
 }
 
 div#detail .header img {
-    margin-right: 0.5em;
+    margin-right: 1em;
+    float: left;
     width: 32px;
     height: 32px;
 }
 
+div#detail .header h2 {
+    padding-top: 8px;
+    font-size: 16px;
+}
+
 div#detail .body {
     clear: both;
-	f-ont-size: 120%;
-	t-ext-align: center;
+}
+
+div#detail .body p {
+    padding-left: 0.4em;
 }
 
 div#detail .body div {
 	display: inline-block;
-	w-idth: 80%;
-	text-align: left;
+}
+
+div#detail .body ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+div#detail .body ul:first-child {
+    border-top: 1px solid #ddd;
+}
+
+div#detail .body li {
+    display: block;
+    padding: 0.4em 1em 0.4em 0.4em;
+    border-bottom: 1px solid #ddd;
+    margin: 0;
+}
+
+div#detail .body li:hover {
+    background-color: #eee;
 }
 
 
