@@ -58,7 +58,7 @@ define(['jquery', 'underscore'], function($, _) {
 	return { 
 		'debug' : true,
 		'timeout' : 30, /* seconds before loader throws a timeout */
-	    'spreadsheet' : 'https://docs.google.com/spreadsheet/ccc?key=0AnjSydpjIFuXdEM2NTMyMFhqRGVfWW43em1Ra2dXbVE#gid=1', 
+	    'spreadsheet' : 'https://docs.google.com/spreadsheet/ccc?key=0AplklDf0nYxWdDQ5amxBZndmRWM3elUtWlJBc3dya1E#gid=1', 
 	    'log' :	log,
 	    'loading' : loading,
 	    'fatal' : fatal,
