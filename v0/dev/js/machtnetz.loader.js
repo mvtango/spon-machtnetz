@@ -103,7 +103,6 @@ define(['jquery', 'underscore', 'tabletop', 'config', 'jquerymustache'],
                 edge.source._outbound.push(edge);
                 edge.target = nodes[edge.target];
                 edge.target._inbound.push(edge);
-                nodes[edge.target].weight++;
                 edge.id = edge.source + '>->' + edge.target;
                 edges.push(edge);
             });
